@@ -13,7 +13,10 @@
 // to also remove its path from "config.paths.watched".
 import "phoenix_html"
 import { Poll } from "./poll"
+import { LivePoller } from "./live_poller"
+
 let poll = new Poll()
+let livePoller = new LivePoller()
 
 // Import local files
 //
