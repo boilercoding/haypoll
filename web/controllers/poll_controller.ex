@@ -2,6 +2,7 @@ defmodule Haypoll.PollController do
   use Haypoll.Web, :controller
 
   alias Haypoll.Poll
+  alias Haypoll.Entry
 
   def index(conn, _params) do
     polls = Repo.all(Poll)
@@ -16,7 +17,7 @@ defmodule Haypoll.PollController do
   def create(conn, %{"poll" => poll_params}) do
     changeset = Poll.changeset(%Poll{}, poll_params)
 
-    case Repo.insert(changeset) do
+    case create_poll(poll_params) do
       {:ok, _poll} ->
         conn
         |> put_flash(:info, "Poll created successfully.")
@@ -61,5 +62,21 @@ defmodule Haypoll.PollController do
     conn
     |> put_flash(:info, "Poll deleted successfully.")
     |> redirect(to: poll_path(conn, :index))
+  end
+
+  defp create_poll(poll_params) do
+    Repo.transaction fn ->
+      changeset = Poll.changeset(%Poll{}, poll_params)
+
+      case Repo.insert(changeset) do
+        {:ok, poll} ->
+          Enum.map poll_params["entries"], fn entry ->
+            entry = build_assoc(poll, :entries, %{title: entry})
+            Repo.insert! entry
+          end
+        {:error, changeset} ->
+          Repo.rollback changeset
+      end
+    end
   end
 end
