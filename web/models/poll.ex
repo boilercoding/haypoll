@@ -4,6 +4,7 @@ defmodule Haypoll.Poll do
   schema "polls" do
     field :title, :string
     field :closed, :boolean, default: false
+    has_many :entries, Haypoll.Entry, on_delete: :delete_all
 
     timestamps()
   end
